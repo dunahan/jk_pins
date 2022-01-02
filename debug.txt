@@ -1,0 +1,59 @@
+Args: install
+... --debug
+Command: install
+Help: false
+Version: false
+Force: None
+
+Verifying binaries...
+Located script compiler at c:/users/dunahan/documents/nwn_util/nwnsc.exe
+Located erf utility at c:/users/dunahan/documents/nwn_util/nwn_erf.exe
+Located gff utility at c:/users/dunahan/documents/nwn_util/nwn_gff.exe
+Located tlk utility at c:/users/dunahan/documents/nwn_util/nwn_tlk.exe
+Section: [Package]
+Option: name = jk_pins.mod
+Option: description = Persistent Map Pins
+Option: version = 1.0
+Option: url =
+Option: author = dunahan <25346708+dunahan@users.noreply.github.com>
+Section: [Sources]
+Option: include = src/**/*.{nss,json}
+Section: [Rules]
+Option: * = src/$ext
+Section: [Target]
+Option: name = default
+Option: file = jk_pins.mod
+Option: description = jk_pins demo mod
+
+Beginning configuration dump
+
+Package: jk_pins.mod
+Description: Persistent Map Pins
+Version: 1.0
+Authors: dunahan <25346708+dunahan@users.noreply.github.com>
+Includes: src/**/*.{nss,json}
+Rule: * -> src/$ext
+
+Target: default
+Description: jk_pins demo mod
+File: jk_pins.mod
+Includes: src/**/*.{nss,json}
+Rule: * -> src/$ext
+
+Located Beamdog installation at C:\bdl\00829
+Installing target default
+Updating cache for target default
+Converting src\utc\dlg_demo_poet.utc.json -> dlg_demo_poet.utc
+Copying src\nss\dlg_dialogabort.nss -> dlg_dialogabort.nss
+Copying src\nss\nwnx_util.nss -> nwnx_util.nss
+Copying src\nss\dlg_c_dialogs.nss -> dlg_c_dialogs.nss
+Converting src\itp\encounterpalcus.itp.json -> encounterpalcus.itp
+Copying src\nss\dlg_l_demo.nss -> dlg_l_demo.nss
+Copying src\nss\chat_l_plugin.nss -> chat_l_plugin.nss
+Copying src\nss\util_i_library.nss -> util_i_library.nss
+Converting src\are\startingarea.are.json -> startingarea.are
+Converting src\dlg\dlg_convnozoom.dlg.json -> dlg_convnozoom.dlg
+Error: Could not convert dlg_convnozoom.dlg.json to dlg_convnozoom.dlg:
+... fatal.nim(53)            sysFatal
+... Error: unhandled exception: value out of range: 4294967295 notin
+... -2147483648 .. 2147483647 [RangeDefect]

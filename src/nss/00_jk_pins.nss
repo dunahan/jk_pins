@@ -56,7 +56,10 @@ const string DMPTX6 = "Gebietsname ";
 
 #include "x3_inc_string"
 
-void SendServerMessageToPC(object oPC, string Message);
+void SendServerMessageToPC(object oPC, string sMessage) // interal SendMessageToPC from Isladora
+{
+  SendMessageToPC(oPC, "[Server] " + sMessage);
+}
 
 /*__________ PROTO TYPES __________*/
 

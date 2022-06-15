@@ -4,7 +4,7 @@
 // DATE      : 1/12/06
 ////////////////////////////////////////////////////////////////////
 // Modified By : dunahan@schwerterkueste.de
-// Date        : 05.05.2020
+// Date        : 15.05.2022
 ////////////////////////////////////////////////////////////////////
 /*
     Inspired by and origanal Idea by Primogenitor
@@ -28,6 +28,9 @@
     or in the areas OnEnter or OnExit script node. The added Map pin will not show/disapear
     until the PC leaves the area and returns if added/removed while in the effected area.
 */
+/*__________ Utility Includes __________*/
+#include "utl_i_sqlocals.nss";
+
 /*__________ CONSTANTS __________*/
 const string sPINS  = "NW_TOTAL_MAP_PINS";
 const string sENTRY = "NW_MAP_PIN_NTRY_";
@@ -53,6 +56,9 @@ const string DMPTX3 = "X-Koord. ";
 const string DMPTX4 = "Y-Koord. ";
 const string DMPTX5 = "Z-Koord. ";
 const string DMPTX6 = "Gebietsname ";
+
+const string MSG_PL = "Spieler ";
+const string MSG_MK = " Markierungen";
 
 #include "x3_inc_string"
 
@@ -146,10 +152,59 @@ int AddMapPin(object oPC, string sText, float xPos, float yPos, object oArea, in
 ///////////////////////////////////////////////////////////////////////////////
 int PersistentMapPins(object oPC, int iSave_Restore, string sTag = "map_pin_conv2", string sDB_Name = "");
 
+/*_______ HIDDEN DEFINITIONS _______*/
+string SQL_GetLocalString(object oObject, string sVarName) {
+  return SQLocals_GetString(oObject, sVarName);
+}
+
+float string SQL_GetLocalFloat(object oPC, string sVarName) {
+  return SQLocals_GetFloat(oObject, sVarName);
+}
+
+int SQL_GetLocalInt(object oObject, string sVarName) {
+  return SQLocals_GetInt(oObject, sVarName);
+}
+
+object SQL_GetLocalObject(object oObject, string sVarName) {
+  return SQLocals_GetObject(oObject, sVarName);
+}
+
+void SQL_SetLocalString(object oObject, string sVarName, string sValue) {
+  SQLocals_SetString(oObject, sVarName, sValue);
+}
+
+void SQL_SetLocalFloat(object oObject, string sVarName, float fValue){
+  SQLocals_SetFloat(oObject, sVarName, fValue);
+}
+
+void SQL_SetLocalInt(object oObject, string sVarName, int nValue) {
+  SQLocals_SetInt(oObject, sVarName, nValue);
+}
+
+void SQL_SetLocalObject(object oObject, sVarName, object oValue) {
+  SQLocals_SetObject(oObject, sVarName, oValue);
+}
+
+void SQL_DeleteLocalString(object oObject, sVarName) {
+  SQLocals_DeleteString(object oObject, string sVarName);
+}
+
+void SQL_DeleteLocalFloat(object oObject, sVarName) {
+  SQLocals_DeleteFloat(object oObject, string sVarName);
+}
+
+void SQL_DeleteLocalInt(object oObject, sVarName) {
+  SQLocals_DeleteInt(object oObject, string sVarName);
+}
+  
+void SQL_DeleteLocalObject(object oObject, sVarName) {
+  SQLocals_DeleteObject(object oObject, string sVarName);
+}
+
 /*__________ DEFINITIONS __________*/
 int GetPinCount(object oPC)
 {
-  return GetLocalInt(oPC, sPINS);
+  return SQL_GetLocalInt(oPC, sPINS);
 }
 // End GetPinCount()
 
@@ -159,7 +214,7 @@ int GetActivePinCount(object oPC)
   for (i=1; i<=iPinCount; i++)
   {
     string nI = IntToString(i);
-    if (GetLocalString(oPC, sENTRY + nI) != "")
+    if (SQL_GetLocalString(oPC, sENTRY + nI) != "")
       x++;
   }
   return x;
@@ -168,19 +223,19 @@ int GetActivePinCount(object oPC)
 
 object  GetAreaFromPin(object oPC, int iPinNo)
 {
-  return GetLocalObject(oPC, sAREA + IntToString(iPinNo));
+  return SQL_GetLocalObject(oPC, sAREA + IntToString(iPinNo));
 }
 // End GetAreaFromPin()
 
 string GetPinString(object oPC, int iPinNo)
 {
-  return GetLocalString(oPC, sENTRY + IntToString(iPinNo));
+  return SQL_GetLocalString(oPC, sENTRY + IntToString(iPinNo));
 }
 // End GetPinString()
 
 int GetPinActive(object oPC, int iPinNo)
 {
-  if (GetLocalString(oPC, sENTRY + IntToString(iPinNo)) == "")
+  if (SQL_GetLocalString(oPC, sENTRY + IntToString(iPinNo)) == "")
     return FALSE;
   return TRUE;
 }
@@ -191,11 +246,11 @@ void DeleteMapPin(object oPC, int iPinNo)
   if (iPinCount < 1 || iPinCount < iPinNo)
     return;
 
-  DeleteLocalString(oPC, sENTRY + IntToString(iPinNo));
-  DeleteLocalFloat(oPC, sXPOS + IntToString(iPinNo));
-  DeleteLocalFloat(oPC, sYPOS + IntToString(iPinNo));
-  DeleteLocalFloat(oPC, sZPOS + IntToString(iPinNo));
-  DeleteLocalObject(oPC, sAREA + IntToString(iPinNo));
+  SQL_DeleteLocalString(oPC, sENTRY + IntToString(iPinNo));
+  SQL_DeleteLocalFloat(oPC, sXPOS + IntToString(iPinNo));
+  SQL_DeleteLocalFloat(oPC, sYPOS + IntToString(iPinNo));
+  SQL_DeleteLocalFloat(oPC, sZPOS + IntToString(iPinNo));
+  SQL_DeleteLocalObject(oPC, sAREA + IntToString(iPinNo));
 }
 // End DeleteMapPin()
 
@@ -215,11 +270,11 @@ void MapPinDump(object oPC, object oTarget = OBJECT_INVALID, int iDM = TRUE)
     sLoop = IntToString(i);
     if (GetPinActive(oPC, i))
     {
-      sSend = sSend+DMPTX2+sLoop+" = "+GetLocalString(oPC, sENTRY+sLoop)+CR
-                   +DMPTX3+sLoop+" = "+FloatToString(GetLocalFloat(oPC, sXPOS+sLoop),3,0)+CR
-                   +DMPTX4+sLoop+" = "+FloatToString(GetLocalFloat(oPC, sYPOS+sLoop),3,0)+CR
-                 //+DMPTX5+sLoop+" = "+FloatToString(GetLocalFloat(oPC, sZPOS+sLoop),3,0)+CR
-                   +DMPTX6+sLoop+" = "+GetName(GetLocalObject(oPC, sAREA+sLoop))+CR;
+      sSend = sSend+DMPTX2+sLoop+" = "+SQL_GetLocalString(oPC, sENTRY+sLoop)+CR
+                   +DMPTX3+sLoop+" = "+FloatToString(SQL_GetLocalFloat(oPC, sXPOS+sLoop),3,0)+CR
+                   +DMPTX4+sLoop+" = "+FloatToString(SQL_GetLocalFloat(oPC, sYPOS+sLoop),3,0)+CR
+                 //+DMPTX5+sLoop+" = "+FloatToString(SQL_GetLocalFloat(oPC, sZPOS+sLoop),3,0)+CR
+                   +DMPTX6+sLoop+" = "+GetName(SQL_GetLocalObject(oPC, sAREA+sLoop))+CR;
     }
   }
   PrintString(sSend);
@@ -227,9 +282,9 @@ void MapPinDump(object oPC, object oTarget = OBJECT_INVALID, int iDM = TRUE)
   if (GetIsObjectValid(oTarget))
   {
     if (iDM == TRUE && GetIsDM(oTarget))
-      SendServerMessageToPC(oTarget,"Spieler "+GetName(oPC)+" Markierungen"+CR+sSend);
+      SendServerMessageToPC(oTarget,MSG_PL+GetName(oPC)+MSG_MK+CR+sSend);
     else if (iDM == FALSE)
-      SendServerMessageToPC(oTarget,"Spieler "+GetName(oPC)+" Markierungen"+CR+sSend);
+      SendServerMessageToPC(oTarget,MSG_PL+GetName(oPC)+MSG_MK+CR+sSend);
   }
 }
 // End MapPinDump()
@@ -249,19 +304,19 @@ int AddMapPin(object oPC, string sText, float xPos, float yPos, object oArea, in
     }
 
     if (i == iNumPins)
-      SetLocalInt(oPC, sPINS, iNumPins);
+      SQL_SetLocalInt(oPC, sPINS, iNumPins);
     else
       iNumPins = i;
   }
   else
-    SetLocalInt(oPC, sPINS, iNumPins);
+    SQL_SetLocalInt(oPC, sPINS, iNumPins);
 
   sNum = IntToString(iNumPins);
-  SetLocalFloat(oPC, sXPOS+sNum, xPos);
-  SetLocalFloat(oPC, sYPOS+sNum, yPos);
-  SetLocalFloat(oPC, sZPOS+sNum, 0.0);
-  SetLocalObject(oPC, sAREA+sNum, oArea);
-  SetLocalString(oPC, sENTRY+sNum, sText);
+  SQL_SetLocalFloat(oPC, sXPOS+sNum, xPos);
+  SQL_SetLocalFloat(oPC, sYPOS+sNum, yPos);
+  SQL_SetLocalFloat(oPC, sZPOS+sNum, 0.0);
+  SQL_SetLocalObject(oPC, sAREA+sNum, oArea);
+  SQL_SetLocalString(oPC, sENTRY+sNum, sText);
 
   return iNumPins;
 }
@@ -292,17 +347,17 @@ int PersistentMapPins(object oPC, int iSave_Restore, string sTag = "map_pin_conv
         case 0: // restore from DB
           iPinCount = GetCampaignInt(sDB_Name, sPINS, oPC);
           if (iPinCount == 0) return 1;
-            SetLocalInt(oPC, sPINS, iPinCount);
+            SQL_SetLocalInt(oPC, sPINS, iPinCount);
           for (i=1; i<=iPinCount; i++)
           {
             sI = IntToString(i);
             if (GetCampaignString(sDB_Name, sENTRY+sI, oPC) != "")
               {
-                SetLocalString(oPC, sENTRY+sI, GetCampaignString(sDB_Name, sENTRY+sI, oPC));
-                SetLocalFloat(oPC, sXPOS+sI, GetCampaignFloat(sDB_Name, sXPOS+sI, oPC));
-                SetLocalFloat(oPC, sYPOS+sI, GetCampaignFloat(sDB_Name, sYPOS+sI, oPC));
-                SetLocalFloat(oPC, sZPOS+sI, 0.0);
-                SetLocalObject(oPC, sAREA+sI, GetObjectByTag(GetCampaignString(sDB_Name, sAREA+sI, oPC)));
+                SQL_SetLocalString(oPC, sENTRY+sI, GetCampaignString(sDB_Name, sENTRY+sI, oPC));
+                SQL_SetLocalFloat(oPC, sXPOS+sI, GetCampaignFloat(sDB_Name, sXPOS+sI, oPC));
+                SQL_SetLocalFloat(oPC, sYPOS+sI, GetCampaignFloat(sDB_Name, sYPOS+sI, oPC));
+                SQL_SetLocalFloat(oPC, sZPOS+sI, 0.0);
+                SQL_SetLocalObject(oPC, sAREA+sI, GetObjectByTag(GetCampaignString(sDB_Name, sAREA+sI, oPC)));
               }
             }
           return 1;
@@ -310,17 +365,17 @@ int PersistentMapPins(object oPC, int iSave_Restore, string sTag = "map_pin_conv
           case 1: // Restore from Item
             iPinCount = GetPinCount(oItem);
             if (iPinCount == 0) return 1;
-            SetLocalInt(oPC, sPINS, iPinCount);
+            SQL_SetLocalInt(oPC, sPINS, iPinCount);
             for (i=1; i<=iPinCount; i++)
             {
               sI = IntToString(i);
               if (GetPinActive(oItem, i))
               {
-                SetLocalString(oPC, sENTRY+sI, GetLocalString(oItem, sENTRY+sI));
-                SetLocalFloat(oPC, sXPOS+sI, GetLocalFloat(oItem, sXPOS+sI));
-                SetLocalFloat(oPC, sYPOS+sI, GetLocalFloat(oItem, sYPOS+sI));
-                SetLocalFloat(oPC, sZPOS+sI, 0.0);
-                SetLocalObject(oPC, sAREA+sI, GetLocalObject(oItem, sAREA+sI));
+                SQL_SetLocalString(oPC, sENTRY+sI, SQL_GetLocalString(oItem, sENTRY+sI));
+                SQL_SetLocalFloat(oPC, sXPOS+sI, SQL_GetLocalFloat(oItem, sXPOS+sI));
+                SQL_SetLocalFloat(oPC, sYPOS+sI, SQL_GetLocalFloat(oItem, sYPOS+sI));
+                SQL_SetLocalFloat(oPC, sZPOS+sI, 0.0);
+                SQL_SetLocalObject(oPC, sAREA+sI, SQL_GetLocalObject(oItem, sAREA+sI));
               }
             }
           return 1;
@@ -339,10 +394,10 @@ int PersistentMapPins(object oPC, int iSave_Restore, string sTag = "map_pin_conv
               sI = IntToString(i);
               if (GetPinActive(oPC, i))
               {
-                SetCampaignString(sDB_Name, sENTRY+sI, GetLocalString(oPC, sENTRY+sI), oPC);
-                SetCampaignFloat(sDB_Name, sXPOS+sI, GetLocalFloat(oPC, sXPOS+sI), oPC);
-                SetCampaignFloat(sDB_Name, sYPOS+sI, GetLocalFloat(oPC, sYPOS+sI), oPC);
-                SetCampaignString(sDB_Name, sAREA+sI, GetTag(GetLocalObject(oPC, sAREA+sI)), oPC);
+                SetCampaignString(sDB_Name, sENTRY+sI, SQL_GetLocalString(oPC, sENTRY+sI), oPC);
+                SetCampaignFloat(sDB_Name, sXPOS+sI, SQL_GetLocalFloat(oPC, sXPOS+sI), oPC);
+                SetCampaignFloat(sDB_Name, sYPOS+sI, SQL_GetLocalFloat(oPC, sYPOS+sI), oPC);
+                SetCampaignString(sDB_Name, sAREA+sI, GetTag(SQL_GetLocalObject(oPC, sAREA+sI)), oPC);
               }
               else
               {
@@ -355,23 +410,23 @@ int PersistentMapPins(object oPC, int iSave_Restore, string sTag = "map_pin_conv
           return 1;
 
           case 1: // Store to Item
-            SetLocalInt(oItem, sPINS, iPinCount);
+            SQL_SetLocalInt(oItem, sPINS, iPinCount);
             for (i=1; i<=iPinCount; i++)
             {
               sI = IntToString(i);
               if (GetPinActive(oPC, i))
               {
-                SetLocalString(oItem, sENTRY+sI, GetLocalString(oPC, sENTRY+sI));
-                SetLocalFloat(oItem, sXPOS+sI, GetLocalFloat(oPC, sXPOS+sI));
-                SetLocalFloat(oItem, sYPOS+sI, GetLocalFloat(oPC, sYPOS+sI));
-                SetLocalObject(oItem, sAREA+sI, GetLocalObject(oPC, sAREA+sI));
+                SQL_SetLocalString(oItem, sENTRY+sI, SQL_GetLocalString(oPC, sENTRY+sI));
+                SQL_SetLocalFloat(oItem, sXPOS+sI, SQL_GetLocalFloat(oPC, sXPOS+sI));
+                SQL_SetLocalFloat(oItem, sYPOS+sI, SQL_GetLocalFloat(oPC, sYPOS+sI));
+                SQL_SetLocalObject(oItem, sAREA+sI, SQL_GetLocalObject(oPC, sAREA+sI));
               }
               else
               {
-                DeleteLocalString(oItem, sENTRY+sI);
-                DeleteLocalFloat(oItem, sXPOS+sI);
-                DeleteLocalFloat(oItem, sYPOS+sI);
-                DeleteLocalObject(oItem, sAREA+sI);
+                SQL_DeleteLocalString(oItem, sENTRY+sI);
+                SQL_DeleteLocalFloat(oItem, sXPOS+sI);
+                SQL_DeleteLocalFloat(oItem, sYPOS+sI);
+                SQL_DeleteLocalObject(oItem, sAREA+sI);
               }
             }
           return 1;
